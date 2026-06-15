@@ -1,0 +1,29 @@
+seed: 20260913
+
+generator:
+  n_providers: 60
+  n_caregivers: 900
+  n_patients: 2200
+  n_claims: 45000
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+  n_regions: 6
+  # Controlled experimental parameter. NOT an estimate of real Medicaid
+  # improper-payment rates, which are measured at the payment level by CMS
+  # PERM and are not comparable to a per-claim suspicion rate.
+  suspicious_prevalence: 0.035
+  missing_evv_rate: 0.04
+  coordinate_noise_m: 45.0
+  seed: 20260913
+
+split:
+  train_end: "2024-08-31"
+  valid_end: "2024-10-31"
+
+selection:
+  primary_metric: pr_auc
+  tiebreak_metric: precision_at_5pct
+  # Models above this Brier score are excluded from selection: an uncalibrated
+  # score cannot drive the priority bands or the impact simulator.
+  max_brier: 0.10
+  review_capacity_pcts: [0.01, 0.05, 0.10]

@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: "MedicaidGuard-XAI: an explainable, statistically validated framework for prioritising suspicious Medicaid billing and EVV activity"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Hossain
+    given-names: Md Sibbir
+    orcid: "https://orcid.org/0009-0002-0795-4512"
+repository-code: "https://github.com/sibbirhossain/medicaidguard-xai"
+license: MIT
+version: 0.1.0
+date-released: "2026-09-13"
+keywords:
+  - explainable artificial intelligence
+  - healthcare program integrity
+  - anomaly detection
+  - electronic visit verification
+  - Medicaid
+abstract: >
+  A research prototype that combines transparent rules, supervised learning,
+  unsupervised anomaly detection and hybrid risk fusion to prioritise
+  suspicious Medicaid personal-care billing and Electronic Visit Verification
+  activity for human review. All results are produced on synthetic data with
+  simulated labels; the system makes no eligibility or payment decision and
+  produces review recommendations rather than findings of fraud.

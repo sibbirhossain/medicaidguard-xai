@@ -1,0 +1,19 @@
+experiments:
+  exp1_baseline_comparison:
+    models: [rules_only, logistic_regression, random_forest, gradient_boosting,
+             lightgbm, isolation_forest, local_outlier_factor,
+             hybrid_weighted, hybrid_stacked]
+  exp2_feature_ablation:
+    feature_sets: [billing_only, evv_only, billing_evv, billing_evv_temporal,
+                   billing_evv_temporal_stat, full]
+    note: >
+      Ablation runs restrict the supervised zoo to lightgbm + logistic
+      regression. The question being asked is which feature families matter,
+      not which learner wins, and re-running every learner six times adds
+      runtime without changing that answer.
+  exp5_scenario_generalization:
+    held_out_scenarios: [coordinated_activity, near_duplicate_claim, suspicious_timestamps]
+  exp6_class_imbalance:
+    prevalences: [0.01, 0.02, 0.035, 0.06]
+  exp7_operational_thresholds:
+    review_capacities: [0.01, 0.05, 0.10]

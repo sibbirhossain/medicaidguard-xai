@@ -1,0 +1,40 @@
+services:
+  bootstrap:
+    build: .
+    command: >
+      sh -c "python scripts/generate_data.py && python scripts/train.py --skip-stats"
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+
+  api:
+    build: .
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+    environment:
+      - MEDICAIDGUARD_ROOT=/app
+
+  dashboard:
+    build: .
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    command: >
+      streamlit run dashboard/app.py --server.port 8501
+      --server.address 0.0.0.0 --server.headless true
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+    environment:
+      - MEDICAIDGUARD_ROOT=/app

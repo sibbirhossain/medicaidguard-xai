@@ -1,0 +1,51 @@
+# Registry of PUBLIC datasets evaluated during dataset discovery.
+# Nothing is downloaded automatically: several of these require accepting terms
+# of use that a script cannot accept on a user's behalf. See
+# reports/dataset_discovery.md for the full evaluation and the selection
+# rationale, including why no public source supports the EVV track.
+datasets:
+  - name: cms_medicaid_state_drug_utilization
+    source: Data.Medicaid.gov
+    url: https://data.medicaid.gov/
+    owner: Centers for Medicare & Medicaid Services
+    licence: U.S. Government public domain (verify current terms on the portal)
+    download_method: manual portal download
+    notes: >
+      Aggregated state/quarter utilisation. No claim-level rows, no provider
+      identifiers, no fraud labels, no EVV. Usable for contextual analysis of
+      utilisation trends only.
+
+  - name: cms_medicare_physician_supplier_puf
+    source: CMS Data
+    url: https://data.cms.gov/
+    owner: Centers for Medicare & Medicaid Services
+    licence: U.S. Government public domain (verify current terms on the portal)
+    download_method: manual portal download
+    notes: >
+      Provider-level aggregated billing with NPI, HCPCS code, service counts
+      and payment amounts. Medicare not Medicaid; aggregated not claim-level;
+      no fraud labels; no EVV. The closest public analogue for provider peer
+      deviation features.
+
+  - name: hhs_oig_leie
+    source: HHS Office of Inspector General
+    url: https://oig.hhs.gov/exclusions/
+    owner: HHS OIG
+    licence: U.S. Government public domain (verify current terms)
+    download_method: manual download
+    notes: >
+      List of individuals/entities excluded from federal healthcare programs.
+      A verified adverse-action label, but exclusion is an administrative
+      outcome that is not equivalent to a fraud finding on a specific claim,
+      and it carries no billing rows of its own. Any use as a label requires
+      an explicit and stated definition.
+
+  - name: cms_open_payments
+    source: CMS
+    url: https://openpaymentsdata.cms.gov/
+    owner: Centers for Medicare & Medicaid Services
+    licence: U.S. Government public domain (verify current terms)
+    download_method: manual portal download
+    notes: >
+      Industry payments to physicians. Relevant to conflict-of-interest
+      research, not to personal-care billing integrity. Not selected.

@@ -1,0 +1,17 @@
+scenario,held_out_in_training,n_positive,recall_at_5pct,median_score_rank_pct
+excessive_workload,False,12,1.0,97.46532098253375
+authorization_exceedance,False,14,1.0,97.52523157749205
+billing_spike,False,18,1.0,97.50295712552037
+duplicate_claim,False,28,1.0,97.52523157749205
+evv_duration_mismatch,False,12,1.0,97.52523157749205
+provider_caregiver_concentration,False,17,1.0,97.4032416782557
+weekend_activity,False,20,1.0,97.49343287709111
+after_hours_activity,False,20,1.0,97.50933222729158
+implausible_travel,False,21,0.9047619047619048,96.2862014707722
+suspicious_timestamps,True,10,0.9,95.10714779482925
+provider_billing_shift,False,18,0.8888888888888888,96.28247077438284
+coordinated_activity,True,13,0.7692307692307693,92.90644375671336
+authorization_inconsistency,False,18,0.7222222222222222,92.66709679401508
+overlapping_visits,False,26,0.5,85.57519488668389
+near_duplicate_claim,True,24,0.4166666666666667,87.49078298539104
+missing_evv,False,16,0.1875,89.26188994884556

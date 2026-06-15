@@ -1,0 +1,13 @@
+,seconds
+feature_engineering_s,3.623648009000135
+rules_s,0.011588028000005579
+isolation_forest_s,1.5112998800000241
+lof_s,4.621643484999822
+logistic_regression_train_s,0.4155183920001946
+logistic_regression_inference_s,0.01768885000001319
+random_forest_train_s,57.887687007000295
+random_forest_inference_s,0.5527942799999437
+gradient_boosting_train_s,79.34015588199964
+gradient_boosting_inference_s,0.04952373699961754
+lightgbm_train_s,5.608710400000291
+lightgbm_inference_s,0.8597818469997947

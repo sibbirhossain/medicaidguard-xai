@@ -1,0 +1,30 @@
+# Rule thresholds are POLICY parameters, not learned values. They are listed
+# here so a reviewer can see and challenge every one of them.
+rules:
+  billed_exceeds_authorization: {ramp_lo: 1.25, ramp_hi: 3.0, weight: 1.00}
+  visit_overlap:                {ramp_lo: 1.0,  ramp_hi: 60.0, weight: 1.00}
+  implausible_travel:           {ramp_lo: 110.0, ramp_hi: 400.0, weight: 0.95}
+  evv_duration_mismatch:        {ramp_lo: 1.25, ramp_hi: 2.5, weight: 0.85}
+  missing_evv:                  {weight: 0.55}
+  exact_duplicate:              {ramp_lo: 1.0, ramp_hi: 2.0, weight: 0.90}
+  near_duplicate:               {ramp_lo: 1.0, ramp_hi: 3.0, weight: 0.70}
+  timestamp_pattern:            {weight: 0.60}
+  excessive_daily_workload:     {ramp_lo: 14.0, ramp_hi: 26.0, weight: 0.75}
+  after_hours:                  {weight: 0.35}
+
+fusion:
+  strategy_candidates: [weighted, stacked]
+  weights:
+    supervised: 0.50
+    rules: 0.25
+    anomaly: 0.15
+    evv_inconsistency: 0.10
+  priority_bands:
+    low: [0, 40]
+    medium: [40, 65]
+    high: [65, 85]
+    critical: [85, 100]
+
+calibration:
+  method: isotonic
+  fitted_on: validation_window

@@ -1,0 +1,84 @@
+{
+  "config": {
+    "n_providers": 60,
+    "n_caregivers": 900,
+    "n_patients": 2200,
+    "n_claims": 45000,
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31",
+    "n_regions": 6,
+    "suspicious_prevalence": 0.035,
+    "missing_evv_rate": 0.04,
+    "coordinate_noise_m": 45.0,
+    "seed": 20260913,
+    "scenarios": [
+      "overlapping_visits",
+      "authorization_exceedance",
+      "implausible_travel",
+      "evv_duration_mismatch",
+      "missing_evv",
+      "duplicate_claim",
+      "near_duplicate_claim",
+      "billing_spike",
+      "excessive_workload",
+      "provider_caregiver_concentration",
+      "after_hours_activity",
+      "weekend_activity",
+      "provider_billing_shift",
+      "suspicious_timestamps",
+      "coordinated_activity",
+      "authorization_inconsistency"
+    ]
+  },
+  "row_counts": {
+    "regions": 6,
+    "providers": 60,
+    "caregivers": 900,
+    "patients": 2200,
+    "authorizations": 2200,
+    "claims": 45297,
+    "evv_events": 43106,
+    "scenario_labels": 45297
+  },
+  "validation": {
+    "missing_columns": {
+      "regions": [],
+      "providers": [],
+      "caregivers": [],
+      "patients": [],
+      "authorizations": [],
+      "claims": [],
+      "evv_events": [],
+      "scenario_labels": []
+    },
+    "key_issues": [],
+    "plausibility_issues": [],
+    "missing_values": {
+      "regions": {},
+      "providers": {},
+      "caregivers": {},
+      "patients": {},
+      "authorizations": {},
+      "claims": {},
+      "evv_events": {
+        "check_in_latitude": 0.2964,
+        "check_in_longitude": 0.2964,
+        "check_out_latitude": 0.2964,
+        "check_out_longitude": 0.2964,
+        "location_accuracy_m": 0.297
+      },
+      "scenario_labels": {}
+    },
+    "row_counts": {
+      "regions": 6,
+      "providers": 60,
+      "caregivers": 900,
+      "patients": 2200,
+      "authorizations": 2200,
+      "claims": 45297,
+      "evv_events": 43106,
+      "scenario_labels": 45297
+    },
+    "passed": true
+  }
+}
