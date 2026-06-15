@@ -168,7 +168,7 @@ Single CPU core, 45,297 claims × 101 features.
 ## Install and run
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/medicaidguard-xai.git
+git clone https://github.com/sibbirhossain/medicaidguard-xai.git
 cd medicaidguard-xai
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt && pip install -e .
@@ -284,7 +284,7 @@ See [`reports/limitations.md`](reports/limitations.md) and [`docs/methodology.md
   title   = {MedicaidGuard-XAI: An Explainable, Statistically Validated Framework
              for Prioritising Suspicious Medicaid Billing and EVV Activity},
   year    = {2026},
-  url     = {https://github.com/YOUR-USERNAME/medicaidguard-xai},
+  url     = {https://github.com/sibbirhossain/medicaidguard-xai},
   license = {MIT},
   note    = {Results produced on synthetic data with simulated labels}
 }
