@@ -3,7 +3,7 @@
 ## Development setup
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/medicaidguard-xai.git
+git clone https://github.com/sibbirhossain/medicaidguard-xai.git
 cd medicaidguard-xai
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt && pip install -e ".[dev]"
