@@ -15,7 +15,7 @@
 
 ## What this is, in one picture
 
-A home care visit has no institutional witness — only a billing claim and an EVV check-in/check-out record, almost never modeled together because no public dataset links them with verified fraud outcomes. This project builds that missing joint model, validates it statistically, explains every alert it produces, and packages the whole thing to be run and checked by someone other than its author.
+The same gap repeats in every state, for every one of the more than **66 million Americans enrolled in Medicaid** (Medicaid.gov, May 2026): a home care visit has no institutional witness — only a billing claim and an EVV check-in/check-out record, almost never modeled together because no public dataset links them with verified fraud outcomes. A single federal mandate now requires the same fix in all 50 states, but the underlying imbalance is unchanged nationwide — claim volume keeps growing while every state's review team stays fixed in size. This project builds the missing joint model, validates it statistically, explains every alert it produces, and packages the whole thing to be run and checked by someone other than its author.
 
 ```mermaid
 flowchart LR
