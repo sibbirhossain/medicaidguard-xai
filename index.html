@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MedicaidGuard-XAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================= TOKENS ============================= */
+  :root{
+    --bg: #f9f9f7;
+    --surface: #fcfcfb;
+    --surface-raised: #ffffff;
+    --ink: #0b0b0b;
+    --ink-secondary: #52514e;
+    --ink-muted: #898781;
+    --grid-line: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+
+    --accent: #2a78d6;
+    --accent-2: #eb6834;
+    --accent-3: #1baf7a;
+    --accent-4: #4a3aa7;
+
+    --seq-1: #86b6ef; --seq-2:#6da7ec; --seq-3:#5598e7; --seq-4:#3987e5;
+    --seq-5: #2a78d6; --seq-6:#256abf; --seq-7:#1c5cab; --seq-8:#0d366b;
+
+    --good: #0ca30c;
+    --critical: #d03b3b;
+    --warning: #c98500;
+
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-body: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0d0d0d;
+      --surface: #1a1a19;
+      --surface-raised: #202220;
+      --ink: #ffffff;
+      --ink-secondary: #c3c2b7;
+      --ink-muted: #8f8d86;
+      --grid-line: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.12);
+      --accent: #3987e5;
+      --accent-2: #d95926;
+      --accent-3: #199e70;
+      --accent-4: #9085e9;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-raised: #202220;
+    --ink: #ffffff;
+    --ink-secondary: #c3c2b7;
+    --ink-muted: #8f8d86;
+    --grid-line: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.12);
+    --accent: #3987e5;
+    --accent-2: #d95926;
+    --accent-3: #199e70;
+    --accent-4: #9085e9;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--font-body); font-size:16px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding-inline:0;
+  }
+  ::selection{ background:var(--accent); color:#fff; }
+  a{ color:var(--accent); }
+  .wrap{ max-width:1120px; margin-inline:auto; padding-inline:clamp(18px,4vw,40px); }
+  h1,h2,h3{ font-family:var(--font-display); font-weight:600; text-wrap:balance; letter-spacing:-0.01em; margin:0; }
+  p{ margin:0; }
+  .eyebrow{
+    font-family:var(--font-body); font-weight:700; font-size:12.5px; letter-spacing:.10em;
+    text-transform:uppercase; color:var(--accent);
+  }
+  .lede{ color:var(--ink-secondary); font-size:1.08rem; max-width:62ch; }
+  section{ padding-block:clamp(48px,7vw,88px); border-top:1px solid var(--border); }
+  section:first-of-type{ border-top:none; }
+  .section-head{ display:flex; flex-direction:column; gap:10px; margin-bottom:clamp(28px,4vw,40px); max-width:76ch; }
+  .section-head h2{ font-size:clamp(1.55rem,3vw,2.1rem); }
+
+  /* ============================= NAV ============================= */
+  nav.top{
+    position:sticky; top:0; z-index:40; backdrop-filter:blur(10px) saturate(1.4);
+    background:color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom:1px solid var(--border);
+  }
+  nav.top .wrap{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding-block:13px; }
+  .brand{ display:flex; align-items:center; gap:9px; font-family:var(--font-display); font-weight:600; font-size:1.05rem; white-space:nowrap; }
+  .brand .dot{ width:9px; height:9px; border-radius:50%; background:var(--accent); flex:none; }
+  nav.top ul{ list-style:none; display:flex; gap:22px; margin:0; padding:0; }
+  nav.top a{ color:var(--ink-secondary); text-decoration:none; font-size:14px; font-weight:600; }
+  nav.top a:hover{ color:var(--ink); }
+  .gh-link{
+    display:inline-flex; align-items:center; gap:7px; padding:8px 14px; border-radius:8px;
+    background:var(--ink); color:var(--bg); font-size:13.5px; font-weight:700; text-decoration:none; flex:none;
+  }
+  .navlinks{ display:flex; }
+  @media (max-width:760px){ .navlinks{ display:none; } }
+
+  /* ============================= HERO ============================= */
+  .hero{ padding-block:clamp(52px,8vw,96px) clamp(40px,6vw,64px); }
+  .hero h1{ font-size:clamp(2.05rem,4.6vw,3.35rem); line-height:1.06; margin-block:16px 18px; max-width:20ch; }
+  .badgebar{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+  .badge{
+    font-size:12.5px; font-weight:600; padding:5px 11px; border-radius:100px;
+    border:1px solid var(--border); color:var(--ink-secondary); background:var(--surface);
+  }
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border);
+    border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-top:clamp(32px,5vw,48px); }
+  .stat-tile{ background:var(--surface); padding:20px 18px; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .stat-tile .value{ font-family:var(--font-body); font-weight:800; font-size:clamp(1.5rem,3vw,2.1rem); letter-spacing:-0.01em; }
+  .stat-tile .label{ font-size:12.8px; color:var(--ink-secondary); line-height:1.35; }
+  .stat-tile .value.blue{ color:var(--accent); } .stat-tile .value.orange{ color:var(--accent-2); }
+  @media (max-width:760px){ .stat-row{ grid-template-columns:repeat(2,1fr); } }
+
+  /* ============================= CARDS / GRID ============================= */
+  .grid-2{ display:grid; grid-template-columns:1.05fr 1fr; gap:28px; align-items:start; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:860px){ .grid-2{ grid-template-columns:1fr; } .grid-3{ grid-template-columns:1fr; } }
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 24px;
+  }
+  .card h3{ font-size:1.05rem; margin-bottom:8px; }
+  .card p{ color:var(--ink-secondary); font-size:14.5px; }
+  .chart-card{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 22px 14px; }
+  .chart-card .chart-title{ font-weight:700; font-size:15px; margin-bottom:2px; }
+  .chart-card .chart-sub{ color:var(--ink-secondary); font-size:13.3px; margin-bottom:14px; display:block; }
+
+  /* ============================= TIMELINE ============================= */
+  .timeline{ display:flex; align-items:flex-start; gap:0; margin-top:28px; overflow-x:auto; padding-bottom:6px; }
+  .tl-step{ flex:1 1 0; position:relative; padding-top:22px; min-width:140px; }
+  .tl-step::before{ content:""; position:absolute; top:6px; left:0; right:0; height:2px; background:var(--baseline); }
+  .tl-step:first-child::before{ left:50%; }
+  .tl-step:last-child::before{ right:50%; }
+  .tl-step .tl-dot{ position:absolute; top:0px; left:50%; transform:translateX(-50%); width:13px; height:13px; border-radius:50%;
+    background:var(--accent); border:3px solid var(--surface); box-shadow:0 0 0 1px var(--accent); }
+  .tl-step .tl-year{ text-align:center; font-weight:800; font-size:13.5px; color:var(--accent); }
+  .tl-step .tl-text{ text-align:center; font-size:12.6px; color:var(--ink-secondary); margin-top:3px; padding-inline:6px; }
+
+  /* ============================= FLOW ============================= */
+  .flow{ display:flex; align-items:center; gap:14px; margin-top:26px; flex-wrap:wrap; }
+  .flow-box{ flex:1 1 200px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 16px; text-align:center; }
+  .flow-box .fb-emoji{ font-size:22px; }
+  .flow-box .fb-title{ font-weight:700; font-size:14.5px; margin-top:6px; }
+  .flow-box .fb-sub{ font-size:12.6px; color:var(--ink-secondary); margin-top:4px; }
+  .flow-arrow{ flex:0 0 auto; font-size:20px; color:var(--ink-muted); }
+  @media (max-width:700px){ .flow{ flex-direction:column; } .flow-arrow{ transform:rotate(90deg); } }
+  .flow-box.result{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+
+  /* ============================= TABS ============================= */
+  .tabbar{ display:inline-flex; gap:3px; padding:3px; background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:18px; }
+  .tabbtn{ font:inherit; font-weight:700; font-size:13.5px; border:none; background:transparent; color:var(--ink-secondary);
+    padding:8px 16px; border-radius:8px; cursor:pointer; }
+  .tabbtn[aria-selected="true"]{ background:var(--ink); color:var(--bg); }
+  .tabpanel[hidden]{ display:none; }
+  .kv{ display:grid; grid-template-columns:auto 1fr; gap:8px 16px; font-size:14.5px; }
+  .kv dt{ color:var(--ink-muted); font-size:12.6px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; grid-column:1; }
+  .kv dd{ margin:0; grid-column:1; margin-bottom:10px; font-weight:600; }
+  .kv-row{ display:contents; }
+
+  /* ============================= CHIPS ============================= */
+  .chiprow{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:6px; }
+  @media (max-width:920px){ .chiprow{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px){ .chiprow{ grid-template-columns:1fr; } }
+  .chip{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 14px; }
+  .chip .chip-top{ display:flex; align-items:center; gap:7px; margin-bottom:6px; }
+  .chip .chip-status{ font-size:11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:100px; }
+  .chip .chip-status.good{ color:var(--good); background:color-mix(in srgb, var(--good) 16%, transparent); }
+  .chip .chip-status.critical{ color:var(--critical); background:color-mix(in srgb, var(--critical) 16%, transparent); }
+  .chip .chip-h{ font-weight:800; font-size:12.5px; color:var(--ink-muted); }
+  .chip .chip-body{ font-size:13.3px; color:var(--ink-secondary); }
+
+  /* ============================= ICON GRID ============================= */
+  .icongrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media (max-width:760px){ .icongrid{ grid-template-columns:repeat(2,1fr); } }
+  .icard{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; gap:12px; align-items:flex-start; }
+  .icard .ie{ font-size:20px; flex:none; }
+  .icard .it{ font-weight:700; font-size:13.8px; }
+  .icard .is{ font-size:12.6px; color:var(--ink-secondary); margin-top:2px; }
+
+  /* ============================= IMPACT COLUMNS ============================= */
+  .impact-cols{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:760px){ .impact-cols{ grid-template-columns:1fr; } }
+  .impact-col{ border-radius:14px; padding:20px 22px; border:1px solid var(--border); }
+  .impact-col.yes{ background:color-mix(in srgb, var(--good) 7%, var(--surface)); }
+  .impact-col.no{ background:var(--surface); }
+  .impact-col h4{ font-family:var(--font-body); font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; }
+  .impact-col.yes h4{ color:var(--good); }
+  .impact-col.no h4{ color:var(--ink-muted); }
+  .impact-col ul{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px; }
+  .impact-col li{ font-size:13.8px; color:var(--ink-secondary); padding-left:22px; position:relative; }
+  .impact-col.yes li::before{ content:"✓"; position:absolute; left:0; color:var(--good); font-weight:800; }
+  .impact-col.no li::before{ content:"—"; position:absolute; left:0; color:var(--ink-muted); font-weight:800; }
+
+  /* ============================= DETAILS ============================= */
+  details.more{ margin-top:16px; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+  details.more summary{ cursor:pointer; padding:13px 16px; font-weight:700; font-size:13.8px; list-style:none; display:flex; align-items:center; gap:8px; }
+  details.more summary::-webkit-details-marker{ display:none; }
+  details.more summary::before{ content:"+"; font-family:var(--font-display); font-size:17px; color:var(--accent); width:14px; }
+  details.more[open] summary::before{ content:"–"; }
+  details.more .more-body{ padding:0 16px 16px; font-size:13.6px; color:var(--ink-secondary); }
+  details.more .more-body ol,details.more .more-body ul{ padding-left:20px; margin:8px 0; }
+  details.more .more-body li{ margin-bottom:6px; }
+  pre{ background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; overflow-x:auto; font-size:12.4px; font-family:var(--font-mono); }
+  code{ font-family:var(--font-mono); font-size:0.92em; }
+
+  /* ============================= CHART SVG ============================= */
+  .viz{ width:100%; height:auto; overflow:visible; font-family:var(--font-body); }
+  .viz .axis-label{ fill:var(--ink-muted); font-size:11.5px; }
+  .viz .val-label{ fill:var(--ink); font-size:12.5px; font-weight:700; }
+  .viz .cat-label{ fill:var(--ink); font-size:12.5px; }
+  .viz .grid{ stroke:var(--grid-line); stroke-width:1; }
+  .viz .baseline{ stroke:var(--baseline); stroke-width:1; }
+  .bar-hit{ cursor:pointer; }
+  .bar-hit:hover rect.bar{ filter:brightness(1.08); }
+  .legend-row{ display:flex; gap:18px; flex-wrap:wrap; margin-bottom:10px; font-size:12.8px; color:var(--ink-secondary); }
+  .legend-row .lk{ display:inline-flex; align-items:center; gap:7px; }
+  .legend-row .lk i{ width:16px; height:3px; border-radius:2px; display:inline-block; }
+  .tooltip{
+    position:fixed; pointer-events:none; z-index:100; background:var(--ink); color:var(--bg);
+    padding:8px 11px; border-radius:9px; font-size:12.6px; line-height:1.5; box-shadow:0 8px 24px rgba(0,0,0,.22);
+    opacity:0; transform:translateY(4px); transition:opacity .1s ease, transform .1s ease; max-width:240px;
+  }
+  .tooltip.show{ opacity:1; transform:translateY(0); }
+  .tooltip .tt-row{ display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .tooltip .tt-row .tt-key{ width:9px; height:9px; border-radius:2px; flex:none; }
+  .tooltip .tt-title{ font-weight:700; margin-bottom:3px; }
+  .tooltip b{ font-variant-numeric:tabular-nums; }
+
+  /* ============================= FOOTER ============================= */
+  footer{ border-top:1px solid var(--border); padding-block:36px; }
+  footer .wrap{ display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between; align-items:center; }
+  footer p{ font-size:12.8px; color:var(--ink-muted); }
+  footer a{ color:var(--ink-secondary); }
+
+  .disclaimer{ background:color-mix(in srgb, var(--accent-2) 10%, var(--surface)); border:1px solid color-mix(in srgb, var(--accent-2) 30%, var(--border));
+    border-radius:12px; padding:14px 18px; font-size:13.3px; color:var(--ink-secondary); margin-top:20px; }
+  .disclaimer b{ color:var(--ink); }
+
+  .footnote{ font-size:12px; color:var(--ink-muted); margin-top:10px; }
+  .cite-links{ display:flex; gap:14px; flex-wrap:wrap; margin-top:14px; font-size:13.3px; }
+
+  @media (prefers-reduced-motion: reduce){ *{ scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
+  html{ scroll-behavior:smooth; }
+</style>
+</head>
+<body>
+
+
+<div class="tooltip" id="tooltip"></div>
+
+<nav class="top">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span>MedicaidGuard-XAI</div>
+    <ul class="navlinks">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#evidence">Evidence</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#impact">Impact</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <a class="gh-link" href="https://github.com/sibbirhossain/medicaidguard-xai" target="_blank" rel="noopener">View on GitHub ↗</a>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <div class="eyebrow">Explainable AI · Medicaid Program Integrity</div>
+  <h1>Safeguarding public healthcare spending with explainable, statistically validated machine learning</h1>
+  <p class="lede">An open-source framework that fuses Medicaid billing behavior with Electronic Visit Verification (EVV) telemetry into one calibrated, auditable risk score — built to prioritize suspicious activity for human review, and to survive scrutiny when it does.</p>
+  <div class="badgebar">
+    <span class="badge">MIT licensed</span>
+    <span class="badge">43 tests passing</span>
+    <span class="badge">Peer-reviewed, 2026</span>
+    <span class="badge">Reproducible end-to-end</span>
+  </div>
+
+  <div class="stat-row" id="hero-stats">
+    <div class="stat-tile"><div class="value blue" data-count="0.889" data-decimals="3">0</div><div class="label">PR-AUC, selected model — held-out test window</div></div>
+    <div class="stat-tile"><div class="value" data-count="101" data-decimals="0">0</div><div class="label">Engineered features across 5 signal families</div></div>
+    <div class="stat-tile"><div class="value" data-count="45297" data-decimals="0" data-format="comma">0</div><div class="label">Synthetic claims validated, linked to 43,106 EVV events</div></div>
+    <div class="stat-tile"><div class="value orange" data-count="37.39" data-decimals="2" data-prefix="$" data-suffix="B">0</div><div class="label">Medicaid improper payments, FY2025 (CMS, 6.12%)</div></div>
+  </div>
+</header>
+
+<!-- ======================================================= PROBLEM -->
+<section id="problem">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">01 · The Problem</div>
+      <h2>A documentation problem at national scale</h2>
+      <p class="lede">A home care visit has no institutional witness. The only evidence it happened is a verification record and a claim for payment — and when they disagree, someone has to look, with a review team that is fixed while the claims stream keeps growing.</p>
+    </div>
+
+    <div class="chart-card">
+      <span class="chart-title">The scale of the integrity problem</span>
+      <span class="chart-sub">CMS National Health Expenditure &amp; PERM data, FY2024–FY2025</span>
+      <div id="chart-problem-scale"></div>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px;">
+      <div class="card">
+        <h3>Congress created the second data stream</h3>
+        <p>Section 12006(a) of the 21st Century Cures Act mandated Electronic Visit Verification for Medicaid personal care and home health services — the first check-in/check-out record at national scale that can be compared against what's billed.</p>
+        <div class="timeline">
+          <div class="tl-step"><div class="tl-dot"></div><div class="tl-year">2016</div><div class="tl-text">Cures Act §12006 enacted</div></div>
+          <div class="tl-step"><div class="tl-dot"></div><div class="tl-year">2020</div><div class="tl-text">EVV deadline: personal care services</div></div>
+          <div class="tl-step"><div class="tl-dot"></div><div class="tl-year">2023</div><div class="tl-text">EVV deadline: home health services</div></div>
+          <div class="tl-step"><div class="tl-dot"></div><div class="tl-year">Today</div><div class="tl-text">States face FMAP penalties up to 1% for non-compliance</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>The workforce this affects is the largest in the US</h3>
+        <p>Home health and personal care aides — <b style="color:var(--ink)">4.68 million workers</b> — are now the single largest occupation in the country, with the Bureau of Labor Statistics projecting <b style="color:var(--ink)">18% growth and 847,300 new jobs by 2035</b> as care shifts further into homes. Review capacity does not scale the same way.</p>
+        <div id="chart-workforce" style="margin-top:14px;"></div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-box"><div class="fb-emoji">🧾</div><div class="fb-title">Billing claim</div><div class="fb-sub">What was requested for payment</div></div>
+      <div class="flow-arrow">+</div>
+      <div class="flow-box"><div class="fb-emoji">📍</div><div class="fb-title">EVV record</div><div class="fb-sub">Check-in / check-out telemetry</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box result"><div class="fb-emoji">🎯</div><div class="fb-title">Calibrated, explainable risk score</div><div class="fb-sub">Ranks suspicious activity for human review — never an automated decision</div></div>
+    </div>
+    <p class="footnote">These two records are rarely modeled together in published research, because no public dataset links Medicaid claims, EVV telemetry, and verified fraud outcomes. That gap is what this project addresses.</p>
+  </div>
+</section>
+
+<!-- ======================================================= EVIDENCE -->
+<section id="evidence">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">02 · Research Foundation</div>
+      <h2>A peer-reviewed study, and its open-source extension</h2>
+      <p class="lede">This work sits on two connected pieces of research by the same author. They report different numbers because they answer related but distinct questions on different data — toggle between them below.</p>
+    </div>
+
+    <div class="tabbar" role="tablist">
+      <button class="tabbtn" role="tab" aria-selected="true" data-tab="paper">Peer-reviewed paper</button>
+      <button class="tabbtn" role="tab" aria-selected="false" data-tab="repo">This repository</button>
+    </div>
+
+    <div class="tabpanel" data-panel="paper">
+      <div class="grid-2">
+        <div class="card">
+          <h3>Frontiers in Computer Science and Artificial Intelligence, 2026</h3>
+          <p>Hossain, M.S. &amp; Hasan, A T M F. — <i>Safeguarding Public Healthcare Spending with Explainable AI.</i> Vol. 5(3), pp. 35–44. <a href="https://doi.org/10.32996/jcsts.2026.5.3.4" target="_blank" rel="noopener">doi.org/10.32996/jcsts.2026.5.3.4 ↗</a></p>
+        </div>
+        <div class="card">
+          <dl class="kv">
+            <div class="kv-row"><dt>Scale</dt><dd>5,410 providers · 500,000+ claims</dd></div>
+            <div class="kv-row"><dt>Features</dt><dd>17-dimensional engineered set</dd></div>
+            <div class="kv-row"><dt>Best model</dt><dd>Random Forest</dd></div>
+            <div class="kv-row"><dt>Performance</dt><dd>F1 = 0.649 · ROC-AUC = 0.950</dd></div>
+            <div class="kv-row"><dt>Explainability</dt><dd>SHAP: reimbursement, length of stay, claims/beneficiary</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabpanel" data-panel="repo" hidden>
+      <div class="grid-2">
+        <div class="card">
+          <h3>MedicaidGuard-XAI — open-source, MIT licensed</h3>
+          <p>The full engineering extension: adds EVV integration, expands the feature space 6×, replaces a single best-model comparison with a nine-model statistically validated benchmark, and ships production infrastructure — API, dashboard, Docker, CI, 43 tests.</p>
+        </div>
+        <div class="card">
+          <dl class="kv">
+            <div class="kv-row"><dt>Scale</dt><dd>45,297 claims · 43,106 EVV events (synthetic)</dd></div>
+            <div class="kv-row"><dt>Features</dt><dd>101 across 5 families</dd></div>
+            <div class="kv-row"><dt>Best model</dt><dd>LightGBM (selected for speed + calibration)</dd></div>
+            <div class="kv-row"><dt>Performance</dt><dd>PR-AUC = 0.889 · ROC-AUC = 0.985</dd></div>
+            <div class="kv-row"><dt>Focus</dt><dd>Joint billing + EVV modeling, full statistical validation</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-top:20px;">
+      <span class="chart-title">Joint modeling is the study's strongest result</span>
+      <span class="chart-sub">+0.147 PR-AUC from combining billing and EVV over the stronger data stream alone</span>
+      <div id="chart-ablation"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= RESULTS -->
+<section id="results">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">03 · Results</div>
+      <h2>Reported honestly — including where the headline claim didn't hold</h2>
+      <p class="lede">All figures: 45,297 synthetic claims, 101 features, time-based train/validate/test split, seed 20260913. Every number regenerates from <code>make all</code> and is checked in CI.</p>
+    </div>
+
+    <div class="chiprow" id="hypotheses"></div>
+
+    <div class="grid-2" style="margin-top:24px;">
+      <div class="chart-card">
+        <span class="chart-title">Detection quality by model</span>
+        <span class="chart-sub">LightGBM selected on PR-AUC + calibration floor, not on accuracy</span>
+        <div id="chart-models"></div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-title">Why LightGBM: training time</span>
+        <span class="chart-sub">Statistically indistinguishable from random forest on PR-AUC — 10× faster to train</span>
+        <div id="chart-efficiency"></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px;">
+      <div class="chart-card">
+        <span class="chart-title">Operational trade-off</span>
+        <span class="chart-sub">Precision and recall across realistic review budgets — hover a point for reviewer workload</span>
+        <div id="chart-operational"></div>
+      </div>
+      <div class="chart-card">
+        <span class="chart-title">Ranking quality holds under class imbalance</span>
+        <span class="chart-sub">PR-AUC across injected prevalence, down to 1%</span>
+        <div id="chart-imbalance"></div>
+      </div>
+    </div>
+
+    <details class="more" style="margin-top:24px;">
+      <summary>How leakage, calibration and explainability are enforced (technical detail)</summary>
+      <div class="more-body">
+        <ol>
+          <li><b>Column-level:</b> label/provenance columns are blocklisted; entity IDs are excluded from features so trees cannot memorize a caregiver.</li>
+          <li><b>Temporal:</b> every entity aggregate is strictly backward-looking (<code>sort → groupby → shift(1) → rolling</code>).</li>
+          <li><b>Fit-window:</b> peer statistics, network degrees and imputation values are fitted on the training window only, and tested directly.</li>
+          <li><b>Calibration:</b> isotonic regression fitted on validation, applied identically to every model including the rule baseline (Brier 0.0088, ECE 0.0028).</li>
+          <li><b>Explainability:</b> every alert carries SHAP local attributions and structured rule evidence in plain sentences, plus a hard-coded boundary: attributions describe model behavior, not evidence of intent or wrongdoing.</li>
+        </ol>
+        <p>The test suite has caught real defects — an inverted EVV offset corrupting 36% of short-visit intervals, and an empty-table crash — both found before any result was reported, fixed, and every result regenerated.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ======================================================= ENGINEERING -->
+<section id="engineering">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">04 · Implementability</div>
+      <h2>Built to be picked up and operated by someone else</h2>
+      <p class="lede">Every result above reproduces end-to-end in ~20 minutes on a single CPU core, with run provenance (git commit, package versions, platform) captured automatically on every run.</p>
+    </div>
+    <div class="icongrid">
+      <div class="icard"><div class="ie">⚙️</div><div><div class="it">FastAPI backend</div><div class="is">14 typed endpoints — no endpoint changes a claim's status</div></div></div>
+      <div class="icard"><div class="ie">📊</div><div><div class="it">Streamlit dashboard</div><div class="is">8-page investigator interface</div></div></div>
+      <div class="icard"><div class="ie">🐳</div><div><div class="it">Docker Compose</div><div class="is">Full stack — API + dashboard — in one command</div></div></div>
+      <div class="icard"><div class="ie">✅</div><div><div class="it">43 automated tests</div><div class="is">Leakage, calibration, generator, API, explanation contracts</div></div></div>
+      <div class="icard"><div class="ie">🔁</div><div><div class="it">CI on every push</div><div class="is">GitHub Actions, Python 3.10 + 3.12, lint, test, dependency audit</div></div></div>
+      <div class="icard"><div class="ie">📓</div><div><div class="it">One-click Colab</div><div class="is">Full pipeline on free-tier CPU, 10–20 minutes</div></div></div>
+    </div>
+    <p class="footnote"><b>Path to real-world use:</b> swap the synthetic generator for a state agency's or aggregator's real, linked claims-and-EVV extract under a data-use agreement, re-run <code>make all</code>, and every chart above regenerates against real data on the same leakage-tested pipeline. Nothing about the architecture is synthetic-data-specific — only the input is.</p>
+  </div>
+</section>
+
+<!-- ======================================================= IMPACT -->
+<section id="impact">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">05 · Potential Impact</div>
+      <h2>What this establishes, and what it deliberately doesn't</h2>
+      <p class="lede">The case for impact follows the scale established above — stated with the same care about what is shown versus what is projected.</p>
+    </div>
+
+    <div class="impact-cols">
+      <div class="impact-col yes">
+        <h4>Established by this work</h4>
+        <ul>
+          <li>The first open, reproducible methodology and benchmark for joint billing + EVV modeling — a gap essentially absent from published fraud-detection literature</li>
+          <li>Quantified evidence (+0.147 PR-AUC) that the two data streams the Cures Act's EVV mandate now makes possible are worth modeling jointly</li>
+          <li>A leakage-safe, time-based, statistically validated evaluation harness that resists the field's four most common failure modes</li>
+          <li>An equity property, validated directly: access-correlated signals (missing EVV) are deliberately down-weighted so rural or lower-connectivity caregivers aren't systematically over-flagged</li>
+          <li>A fully reproducible, MIT-licensed pipeline any state agency, vendor, or researcher can run, audit, or extend</li>
+        </ul>
+      </div>
+      <div class="impact-col no">
+        <h4>Not yet shown, by design</h4>
+        <ul>
+          <li>Real-world detection performance — every result above is on synthetic data with simulated labels</li>
+          <li>Any measured dollar savings — the impact simulator outputs are labeled illustrative on every field</li>
+          <li>Pilot deployment or external validation — none has occurred</li>
+          <li>Cross-dataset validation — no compatible real dataset pair exists (see <code>reports/dataset_discovery.md</code>)</li>
+        </ul>
+      </div>
+    </div>
+    <p class="footnote">A figure suggesting otherwise would be worse than reporting the gap honestly, which is why none is offered here. The methodology generalizes beyond Medicaid — the same architecture applies to any public benefit program with a similar verification-versus-claim structure: Medicare home health, SNAP, unemployment insurance, disability benefits.</p>
+  </div>
+</section>
+
+<!-- ======================================================= ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">06 · About the Research Program</div>
+      <h2>Domain expertise, applied</h2>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <p>The author works in billing and technology administration at a New York home care agency, covering Medicaid billing automation, EVV compliance tracking, multi-payer authorization workflows, and HHAeXchange platform management. That domain grounding shaped visible design choices: the 16 injected scenarios reflect documentation patterns encountered in practice, the missing-EVV rule carries a deliberately low severity weight, and the rule layer is retained despite weaker standalone performance because rule evidence is what survives an appeal.</p>
+        <p style="margin-top:12px;">M.S. Computer Science, CUNY City College of New York · B.S. Computer Science &amp; Engineering, American International University-Bangladesh · peer reviewer and editorial board member, with a publication record spanning explainable AI for financial-fraud and anomaly detection, healthcare program integrity, and applied deep learning.</p>
+        <div class="cite-links">
+          <a href="https://orcid.org/0009-0002-0795-4512" target="_blank" rel="noopener">ORCID ↗</a>
+          <a href="https://scholar.google.com/citations?user=MMJRxLEAAAAJ" target="_blank" rel="noopener">Google Scholar ↗</a>
+          <a href="https://github.com/sibbirhossain/medicaidguard-xai" target="_blank" rel="noopener">GitHub repository ↗</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Citation</h3>
+        <p>See <code>CITATION.cff</code> in the repository for the full record.</p>
+        <details class="more" style="margin-top:10px;">
+          <summary>BibTeX</summary>
+          <div class="more-body">
+<pre>@article{hossain2026safeguarding,
+  author  = {Hossain, Md Sibbir and Hasan, A T M Fokrule},
+  title   = {Safeguarding Public Healthcare Spending with
+             Explainable AI: A Statistically Validated Machine
+             Learning Framework for Medicaid Fraud Detection and
+             Electronic Visit Verification},
+  journal = {Frontiers in Computer Science and Artificial
+             Intelligence},
+  volume  = {5}, number = {3}, pages = {35--44}, year = {2026},
+  doi     = {10.32996/jcsts.2026.5.3.4}
+}
+
+@software{hossain_medicaidguard_xai_2026,
+  author  = {Hossain, Md Sibbir},
+  title   = {MedicaidGuard-XAI},
+  year    = {2026},
+  url     = {https://github.com/sibbirhossain/medicaidguard-xai},
+  license = {MIT}
+}</pre>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <b>Scope note.</b> Alerts produced by this system are review recommendations, not findings of fraud. Every synthetic-data metric on this page is reproduced by <code>make all</code> in the repository; every external statistic (Medicaid spending, improper-payment rates, the EVV mandate, workforce figures) is drawn from CMS, the 21st Century Cures Act, and the Bureau of Labor Statistics, cited at each figure — none is an output of this project's model.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>MIT License · © 2026 Md Sibbir Hossain</p>
+    <p><a href="https://github.com/sibbirhossain/medicaidguard-xai" target="_blank" rel="noopener">github.com/sibbirhossain/medicaidguard-xai</a></p>
+  </div>
+</footer>
+
+<script>
+/* ======================================================================
+   Shared helpers
+====================================================================== */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs={}, parent=null){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  if(parent) parent.appendChild(e);
+  return e;
+}
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+const tooltip = document.getElementById("tooltip");
+function showTip(x, y, html){
+  tooltip.innerHTML = "";
+  html.forEach(row=>{
+    const r = document.createElement("div"); r.className="tt-row";
+    if(row.color){ const k=document.createElement("span"); k.className="tt-key"; k.style.background=row.color; r.appendChild(k); }
+    const t = document.createElement("span");
+    if(row.title){ r.classList.add("tt-title"); t.textContent = row.title; }
+    else { t.innerHTML = row.label + ": <b>" + row.value + "</b>"; }
+    r.appendChild(t);
+    tooltip.appendChild(r);
+  });
+  const pad = 14;
+  let left = x + pad, top = y + pad;
+  tooltip.style.left = "0px"; tooltip.style.top="0px"; tooltip.classList.add("show");
+  const r = tooltip.getBoundingClientRect();
+  if(left + r.width > window.innerWidth - 8) left = x - r.width - pad;
+  if(top + r.height > window.innerHeight - 8) top = y - r.height - pad;
+  tooltip.style.left = left + "px"; tooltip.style.top = top + "px";
+}
+function hideTip(){ tooltip.classList.remove("show"); }
+
+function fmt(n, decimals=0){
+  return n.toLocaleString(undefined, {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+}
+
+/* ======================================================================
+   Horizontal bar chart (rounded, muted-vs-highlight or sequential ramp)
+====================================================================== */
+function hBarChart(containerId, data, opts={}){
+  const container = document.getElementById(containerId);
+  const W = 640, rowH = opts.rowH || 40, padTop = 8, padBottom = 30, padLeft = opts.padLeft || 4;
+  const labelW = opts.labelW || 190;
+  const plotW = W - labelW - 60;
+  const H = data.length * rowH + padTop + padBottom;
+  const xMax = opts.xMax || Math.max(...data.map(d=>d.value)) * 1.08;
+
+  const svg = el("svg", {class:"viz", viewBox:`0 0 ${W} ${H}`, role:"img"}, container);
+  const gridColor = cssVar('--grid-line'), baseColor = cssVar('--baseline');
+
+  // gridlines
+  const ticks = opts.ticks || 5;
+  for(let i=0;i<=ticks;i++){
+    const gx = labelW + (plotW * i/ticks);
+    el("line", {x1:gx,x2:gx,y1:padTop-2,y2:H-padBottom, class:"grid"}, svg);
+    const tx = xMax * i/ticks;
+    const t = el("text", {x:gx, y:H-padBottom+18, class:"axis-label", "text-anchor":"middle"}, svg);
+    t.textContent = opts.tickFmt ? opts.tickFmt(tx) : tx.toFixed(2);
+  }
+
+  data.forEach((d,i)=>{
+    const cy = padTop + i*rowH + rowH/2;
+    const barH = opts.barH || 20;
+    const bw = Math.max((d.value/xMax) * plotW, 2);
+    const g = el("g", {class:"bar-hit"}, svg);
+    el("rect", {x:0,y:-100,width:W,height:rowH, fill:"transparent", x:labelW, y:cy-rowH/2}, g); // hit area
+    const label = el("text", {x:labelW-12, y:cy+4, class:"cat-label", "text-anchor":"end"}, g);
+    label.textContent = d.label;
+    if(d.highlight) label.style.fontWeight = "700";
+    const rect = el("rect", {class:"bar", x:labelW, y:cy-barH/2, width:bw, height:barH, rx:barH/2, fill:d.color}, g);
+    const val = el("text", {x:labelW+bw+8, y:cy+4, class:"val-label"}, g);
+    val.textContent = opts.valueFmt ? opts.valueFmt(d.value) : d.value;
+    if(d.highlight) val.style.fontWeight = "800";
+
+    g.addEventListener("pointermove", (e)=>{
+      showTip(e.clientX, e.clientY, [
+        {title:d.label},
+        {label: opts.tipLabel || "Value", value: opts.valueFmt ? opts.valueFmt(d.value) : d.value, color:d.color}
+      ]);
+    });
+    g.addEventListener("pointerleave", hideTip);
+  });
+
+  el("line", {x1:labelW, x2:labelW, y1:padTop-2, y2:H-padBottom, class:"baseline"}, svg);
+}
+
+/* ======================================================================
+   Line chart (multi-series, crosshair + shared tooltip)
+====================================================================== */
+function lineChart(containerId, series, opts={}){
+  const container = document.getElementById(containerId);
+  const W = 620, H = 300, padL = 44, padR = 20, padT = 16, padB = 40;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const xs = series[0].points.map(p=>p.x);
+  const xMin = opts.xMin ?? Math.min(...xs), xMax = opts.xMax ?? Math.max(...xs);
+  const yMin = opts.yMin ?? 0, yMax = opts.yMax ?? Math.max(...series.flatMap(s=>s.points.map(p=>p.y))) * 1.1;
+
+  const svg = el("svg", {class:"viz", viewBox:`0 0 ${W} ${H}`, role:"img"}, container);
+  const sx = x => padL + (x-xMin)/(xMax-xMin) * plotW;
+  const sy = y => padT + plotH - (y-yMin)/(yMax-yMin) * plotH;
+
+  // legend
+  if(series.length > 1){
+    const lg = document.createElement("div"); lg.className = "legend-row";
+    series.forEach(s=>{
+      const item = document.createElement("span"); item.className="lk";
+      item.innerHTML = `<i style="background:${s.color}"></i>${s.name}`;
+      lg.appendChild(item);
+    });
+    container.parentElement.insertBefore(lg, container);
+  }
+
+  // y gridlines
+  const yticks = opts.yTicks || 5;
+  for(let i=0;i<=yticks;i++){
+    const yv = yMin + (yMax-yMin)*i/yticks;
+    const gy = sy(yv);
+    el("line", {x1:padL, x2:W-padR, y1:gy, y2:gy, class:"grid"}, svg);
+    const t = el("text", {x:padL-8, y:gy+4, class:"axis-label", "text-anchor":"end"}, svg);
+    t.textContent = opts.yFmt ? opts.yFmt(yv) : yv.toFixed(1);
+  }
+  // x ticks
+  xs.forEach(xv=>{
+    const t = el("text", {x:sx(xv), y:H-padB+18, class:"axis-label", "text-anchor":"middle"}, svg);
+    t.textContent = opts.xFmt ? opts.xFmt(xv) : xv;
+  });
+  if(opts.xLabel){ const t=el("text",{x:padL+plotW/2, y:H-4, class:"axis-label", "text-anchor":"middle"}, svg); t.textContent=opts.xLabel; }
+
+  series.forEach(s=>{
+    let d = "";
+    s.points.forEach((p,i)=>{ d += (i===0?"M":"L") + sx(p.x) + " " + sy(p.y) + " "; });
+    el("path", {d, fill:"none", stroke:s.color, "stroke-width":2.4, "stroke-linecap":"round", "stroke-linejoin":"round"}, svg);
+    s.points.forEach(p=>{
+      el("circle", {cx:sx(p.x), cy:sy(p.y), r:5, fill:s.color, stroke:cssVar('--surface'), "stroke-width":2}, svg);
+    });
+  });
+
+  // crosshair + hit layer
+  const crosshair = el("line", {x1:0,x2:0,y1:padT,y2:H-padB, stroke:cssVar('--baseline'), "stroke-width":1, opacity:0}, svg);
+  const hit = el("rect", {x:padL, y:padT, width:plotW, height:plotH, fill:"transparent"}, svg);
+  hit.addEventListener("pointermove",(e)=>{
+    const rectEl = svg.getBoundingClientRect();
+    const px = (e.clientX - rectEl.left) / rectEl.width * W;
+    let nearest = xs[0], nd = Infinity;
+    xs.forEach(xv=>{ const dd = Math.abs(sx(xv)-px); if(dd<nd){nd=dd; nearest=xv;} });
+    crosshair.setAttribute("x1", sx(nearest)); crosshair.setAttribute("x2", sx(nearest)); crosshair.setAttribute("opacity",1);
+    const rows = [{title: (opts.xFmt?opts.xFmt(nearest):nearest) + (opts.xUnit||"")}];
+    series.forEach(s=>{
+      const pt = s.points.find(p=>p.x===nearest);
+      rows.push({label:s.name, value: opts.yFmt?opts.yFmt(pt.y):pt.y, color:s.color});
+      if(pt.extra){ Object.keys(pt.extra).forEach(k=>rows.push({label:k, value:pt.extra[k]})); }
+    });
+    showTip(e.clientX, e.clientY, rows);
+  });
+  hit.addEventListener("pointerleave", ()=>{ crosshair.setAttribute("opacity",0); hideTip(); });
+}
+
+/* ======================================================================
+   DATA + RENDER
+====================================================================== */
+const BLUE = cssVar('--accent') || "#2a78d6";
+const ORANGE = cssVar('--accent-2') || "#eb6834";
+const MUTED = "#8f8d86";
+const SEQ = ["#86b6ef","#6da7ec","#5598e7","#3987e5","#2a78d6","#256abf","#1c5cab","#0d366b"];
+
+// Problem scale
+hBarChart("chart-problem-scale", [
+  {label:"Total Medicaid spending, FY2024", value:908.8, color:BLUE},
+  {label:"Improper payments, FY2025 (6.12%)", value:37.39, color:ORANGE, highlight:true},
+], {xMax:1000, valueFmt:v=>"$"+fmt(v,2)+"B", tickFmt:v=>"$"+fmt(v,0)+"B", labelW:230, rowH:56, barH:26});
+
+// Workforce mini chart
+hBarChart("chart-workforce", [
+  {label:"Employed today (2025)", value:4677100, color:BLUE},
+  {label:"+ new jobs by 2035", value:847300, color:cssVar('--accent-3') || "#1baf7a"},
+], {xMax:4700000, valueFmt:v=>fmt(Math.round(v/1000))+"K", tickFmt:v=>fmt(Math.round(v/1000000*10)/10)+"M", labelW:170, rowH:40, barH:18, ticks:4});
+
+// Feature ablation
+hBarChart("chart-ablation", [
+  {label:"Billing only (44 features)", value:0.437, color:SEQ[1]},
+  {label:"EVV only (36 features)", value:0.593, color:SEQ[2]},
+  {label:"Billing + EVV (72 features)", value:0.740, color:SEQ[4]},
+  {label:"+ temporal (87 features)", value:0.836, color:SEQ[5]},
+  {label:"+ statistical (93 features)", value:0.839, color:SEQ[6]},
+  {label:"+ network — full (101 features)", value:0.889, color:SEQ[7], highlight:true},
+], {xMax:1, valueFmt:v=>v.toFixed(3), tickFmt:v=>v.toFixed(1), labelW:210, rowH:38, barH:20, tipLabel:"PR-AUC"});
+
+// Model comparison
+hBarChart("chart-models", [
+  {label:"LightGBM (selected)", value:0.889, color:BLUE, highlight:true},
+  {label:"Random forest", value:0.879, color:MUTED},
+  {label:"Hybrid (stacked)", value:0.865, color:MUTED},
+  {label:"Hybrid (weighted)", value:0.846, color:MUTED},
+  {label:"Gradient boosting", value:0.835, color:MUTED},
+  {label:"Logistic regression", value:0.788, color:MUTED},
+  {label:"Local Outlier Factor", value:0.407, color:MUTED},
+  {label:"Rules only", value:0.354, color:MUTED},
+  {label:"Isolation Forest", value:0.211, color:MUTED},
+], {xMax:1, valueFmt:v=>v.toFixed(3), tickFmt:v=>v.toFixed(1), labelW:170, rowH:34, barH:18, tipLabel:"PR-AUC"});
+
+// Efficiency (training time, seconds)
+hBarChart("chart-efficiency", [
+  {label:"LightGBM (selected)", value:5.61, color:BLUE, highlight:true},
+  {label:"Isolation Forest", value:1.51, color:MUTED},
+  {label:"Random forest", value:57.89, color:MUTED},
+  {label:"Gradient boosting", value:79.34, color:MUTED},
+], {xMax:85, valueFmt:v=>v.toFixed(1)+"s", tickFmt:v=>Math.round(v)+"s", labelW:170, rowH:38, barH:13, tipLabel:"Training time"});
+
+// Operational capacity — line chart
+lineChart("chart-operational", [
+  {name:"Precision", color:BLUE, points:[
+    {x:0.5,y:1.000, extra:{"FTE / 100k claims":"0.44"}},
+    {x:2.5,y:1.000, extra:{"FTE / 100k claims":"2.24"}},
+    {x:4.6,y:0.732, extra:{"FTE / 100k claims":"4.04"}},
+    {x:9.7,y:0.382, extra:{"FTE / 100k claims":"8.55"}},
+    {x:25.0,y:0.157, extra:{"FTE / 100k claims":"22.06"}},
+  ]},
+  {name:"Recall", color:ORANGE, points:[
+    {x:0.5,y:0.125},{x:2.5,y:0.641},{x:4.6,y:0.847},{x:9.7,y:0.934},{x:25.0,y:0.990},
+  ]},
+], {yMin:0, yMax:1.05, xFmt:v=>v+"%", yFmt:v=>v.toFixed(2), xLabel:"Share of claims reviewed"});
+
+// Class imbalance
+lineChart("chart-imbalance", [
+  {name:"PR-AUC", color:BLUE, points:[
+    {x:1.0,y:0.843},{x:2.0,y:0.889},{x:3.5,y:0.889},{x:6.0,y:0.918},
+  ]},
+], {yMin:0, yMax:1.0, xFmt:v=>v+"%", yFmt:v=>v.toFixed(2), xLabel:"Injected prevalence"});
+
+/* ======================================================================
+   Hypotheses chips
+====================================================================== */
+const hyps = [
+  {h:"H1", status:"good", label:"Supported", text:"Learned models beat transparent rules — ΔPR-AUC +0.535, CI [0.481, 0.585]"},
+  {h:"H2", status:"good", label:"Strongest result", text:"Billing + EVV beats either family alone — 0.437 / 0.593 → 0.740 combined"},
+  {h:"H3", status:"critical", label:"Not supported", text:"Hybrid fusion did not beat the best single model — 0.865 vs 0.889"},
+  {h:"H4", status:"good", label:"Supported", text:"Scores calibrate to usable probabilities — Brier 0.0088, ECE 0.0028"},
+  {h:"H5", status:"good", label:"Supported, with degradation", text:"Held-out scenarios recover at 0.42–0.90 recall@5% vs ~1.00 trained"},
+];
+const chipHost = document.getElementById("hypotheses");
+hyps.forEach(h=>{
+  const c = document.createElement("div"); c.className="chip";
+  c.innerHTML = `<div class="chip-top"><span class="chip-h">${h.h}</span><span class="chip-status ${h.status}">${h.label}</span></div><div class="chip-body">${h.text}</div>`;
+  chipHost.appendChild(c);
+});
+
+/* ======================================================================
+   Tabs
+====================================================================== */
+document.querySelectorAll(".tabbtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tabbtn").forEach(b=>b.setAttribute("aria-selected","false"));
+    btn.setAttribute("aria-selected","true");
+    const name = btn.dataset.tab;
+    document.querySelectorAll(".tabpanel").forEach(p=>{ p.hidden = p.dataset.panel !== name; });
+  });
+});
+
+/* ======================================================================
+   Count-up animation for hero stats (respects reduced motion)
+====================================================================== */
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.querySelectorAll("#hero-stats .value").forEach(node=>{
+  const target = parseFloat(node.dataset.count);
+  const decimals = parseInt(node.dataset.decimals || "0");
+  const prefix = node.dataset.prefix || "", suffix = node.dataset.suffix || "";
+  const useComma = node.dataset.format === "comma";
+  function render(v){
+    let s = useComma ? Math.round(v).toLocaleString() : v.toFixed(decimals);
+    node.textContent = prefix + s + suffix;
+  }
+  if(reduce){ render(target); return; }
+  let start = null; const dur = 1100;
+  function step(ts){
+    if(!start) start = ts;
+    const p = Math.min((ts-start)/dur, 1);
+    const eased = 1 - Math.pow(1-p, 3);
+    render(target*eased);
+    if(p<1) requestAnimationFrame(step);
+  }
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{ if(en.isIntersecting){ requestAnimationFrame(step); obs.disconnect(); } });
+  }, {threshold:0.4});
+  obs.observe(node);
+});
+</script>
+
+</body>
+</html>
