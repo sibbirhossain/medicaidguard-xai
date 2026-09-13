@@ -7,7 +7,7 @@
 [![Tests: 43 passing](https://img.shields.io/badge/tests-43%20passing-brightgreen.svg)]()
 [![Peer-reviewed](https://img.shields.io/badge/published-Frontiers%20in%20CS%20%26%20AI%20(2026)-blueviolet.svg)](https://doi.org/10.32996/jcsts.2026.5.3.4)
 
-**[→ Open the interactive results dashboard](https://claude.ai/code/artifact/829f2a34-93df-4826-b0f0-ae8f4d8b82b1)** — every chart on this page, hoverable, in one scroll.
+**[→ Open the interactive results dashboard](https://sibbirhossain.github.io/medicaidguard-xai/)** — every chart on this page, hoverable, in one scroll.
 
 > Alerts are review recommendations, not findings of fraud. Every metric below is produced on **synthetic data with simulated labels** — stated once here, and never quietly dropped further down.
 
